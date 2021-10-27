@@ -89,19 +89,19 @@ app.get("/jobs/unpaid", getProfile, async (req, res) => {
  * if his balance >= the amount to pay.
  * The amount should be moved from the client's balance to the contractor balance.
  */
-app.post("/jobs/:job_id/pay", getProfile, async (req, res) => {
+app.post("/jobs/:jobId/pay", getProfile, async (req, res) => {
   if (req.profile.type != "client") {
     return res
       .status(401)
       .json({ error: "Only Clients are allowed to authorise payment." })
       .end();
   }
-  const { job_id } = req.params;
+  const { jobId } = req.params;
   const { Job, Contract, Profile } = req.app.get("models");
   const job = await Job.findOne({
     attributes: ["id", "price", "paid"],
     where: {
-      id: job_id,
+      id: jobId,
       paid: null,
     },
     include: [
@@ -119,7 +119,7 @@ app.post("/jobs/:job_id/pay", getProfile, async (req, res) => {
   // client balance less than job price
   if (req.profile.balance < job.price) {
     result = {
-      jobId: job_id,
+      jobId: jobId,
       jobPrice: job.price,
       contractId: job.Contract.id,
       contractorId: job.Contract.ContractorId,
@@ -149,7 +149,7 @@ app.post("/jobs/:job_id/pay", getProfile, async (req, res) => {
       const jobUpdate = await Job.update(
         { paid: "1", paymentDate: sequelize.literal("CURRENT_TIMESTAMP") },
         {
-          where: { id: job_id },
+          where: { id: jobId },
         }
       );
       // console.log("jobUpdate", jobUpdate);
@@ -163,7 +163,7 @@ app.post("/jobs/:job_id/pay", getProfile, async (req, res) => {
     } catch (error) {
       console.log("error", error);
       result = {
-        jobId: job_id,
+        jobId: jobId,
         jobPrice: job.price,
         clientBalance: req.profile.balance,
         contractId: job.Contract.id,
